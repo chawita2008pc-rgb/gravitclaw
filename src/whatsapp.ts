@@ -21,7 +21,6 @@ export async function createWhatsAppBot(config: Config, client: OpenAI, memory: 
 
     const sock = makeWASocket({
         auth: state,
-        printQRInTerminal: true,
         logger: pino({ level: "silent" }) as any, // Mute baileys logging to prevent console spam
     });
 
@@ -32,6 +31,14 @@ export async function createWhatsAppBot(config: Config, client: OpenAI, memory: 
 
         if (qr) {
             console.log("Generating QR code image for Telegram...");
+
+            // Print to terminal manually since Baileys deprecated their native option
+            import("qrcode-terminal").then(qrcodeTerminal => {
+                qrcodeTerminal.default.generate(qr, { small: true });
+            }).catch(err => {
+                console.error("Could not load qrcode-terminal for local display:", err);
+            });
+
             try {
                 // Generate QR code as a buffer
                 const qrBuffer = await QRCode.toBuffer(qr);
